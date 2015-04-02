@@ -16,7 +16,8 @@ exports.init = function () {
 
     var config = self._config = Ul.merge(self._config, {
         db: "engine",
-        uri: null
+        uri: null,
+        actions: {}
     });
 
     if (!config.uri) {
@@ -30,6 +31,9 @@ exports.init = function () {
 };
 
 exports.request = function (link) {
+    var self = this;
+    var conf = self._config;
+
     link.data(function (err, data) {
         if (err) { return link.end(err); }
         data = Ul.merge(data, {
@@ -38,5 +42,36 @@ exports.request = function (link) {
         if (!data.action || typeof data.action !== "string") {
             return link.end(new Error("Action is mandatory."));
         }
+
+        var action = conf.actions[data.action];
+        if (typeof action !== "object") {
+            return link.end(new Error("Invalid action."));
+        }
+
+        action = Ul.merge(action, {
+            col: null,
+            query: {},
+            options: {},
+            data: {}
+        });
+
+        if (typeof action.col !== "string") {
+            return link.end(new Error("Collection should be a string."));
+        }
+
+        var collection = self.db.collection(action.col);
+
+        data = Ul.merge(data, {
+            m: "find",
+            args: []
+        });
+
+        var func = collection[data.m];
+        if (typeof func !== "function") {
+            return link.end(new Error("Method doesn't exist."));
+        }
+
+        data.args.push(link.end.bind(link));
+        func.apply(collection, data.args);
     });
 };
