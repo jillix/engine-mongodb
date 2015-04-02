@@ -14,6 +14,13 @@ const FLOW_LINKS = {
 exports.init = function () {
     var self = this;
 
+    Object.keys(FLOW_LINKS).forEach(function (c) {
+        self._access[FLOW_LINKS[c].IN] = true;
+        self.on(FLOW_LINKS[c].IN, engine.flow(self, [{
+            call: FLOW_LINKS[c].OUT
+        }]));
+    });
+
     var config = self._config = Ul.merge(self._config, {
         db: "engine",
         uri: null,
