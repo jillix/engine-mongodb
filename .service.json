@@ -1,0 +1,10 @@
+{
+    "client": {
+        "methods": {
+            "req": {}
+        },
+        "emits": {
+            "response": {}
+        }
+    }
+}
