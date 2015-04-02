@@ -32,7 +32,9 @@ exports.init = function () {
     }
 
     MongoClient.connect(config.uri, function(err, db) {
-        if (err) { return callback(err); }
+        if (err) {
+            return console.error(err);
+        }
         self.db = db;
     });
 };

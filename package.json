@@ -25,5 +25,9 @@
   "bugs": {
     "url": "https://github.com/jillix/engine-mongodb/issues"
   },
-  "homepage": "https://github.com/jillix/engine-mongodb"
+  "homepage": "https://github.com/jillix/engine-mongodb",
+  "dependencies": {
+    "mongodb": "^2.0.25"
+  },
+  "devDependencies": {}
 }
