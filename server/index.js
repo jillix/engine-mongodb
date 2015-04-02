@@ -31,6 +31,7 @@ exports.init = function () {
         config.uri = "mongodb://localhost:27017/" + config.db;
     }
 
+    console.log(config.uri);
     MongoClient.connect(config.uri, function(err, db) {
         if (err) {
             return console.error(err);
@@ -59,9 +60,7 @@ exports.request = function (link) {
 
         action = Ul.merge(action, {
             col: null,
-            query: {},
-            options: {},
-            data: {}
+            method: "find"
         });
 
         if (typeof action.col !== "string") {
@@ -71,16 +70,38 @@ exports.request = function (link) {
         var collection = self.db.collection(action.col);
 
         data = Ul.merge(data, {
-            m: "find",
+            m: action.method || "find",
             args: []
         });
+
+        if (data.args.constructor === Object) {
+            var obj = data.args;
+            data.args = [];
+            Object.keys(obj).forEach(function (c) {
+                c = parseInt(c);
+                if (isNaN(c)) {
+                    return;
+                }
+                data.args[c] = obj[c];
+            });
+            data.args = data.args.filter(function (c) {
+                return c;
+            });
+        }
+
+        if (data.args.constructor !== Array) {
+            return link.end(new Error("Arguments should be an array."));
+        }
 
         var func = collection[data.m];
         if (typeof func !== "function") {
             return link.end(new Error("Method doesn't exist."));
         }
 
-        data.args.push(link.end.bind(link));
+        data.args.push(function (err, data, stats) {
+            link.end.apply(link, arguments);
+        });
+
         func.apply(collection, data.args);
     });
 };
