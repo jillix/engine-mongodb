@@ -26,13 +26,9 @@ exports.init = function () {
 
 exports.request = function (link) {
     var self = this;
-    var conf = self._config;
-
     link.data(function (err, data) {
         if (err) { return link.end(err); }
-        data = Ul.merge(data, {
-            action: null
-        });
+        self.sRequest(data, link.end.bind(link));
     });
 };
 
@@ -40,60 +36,60 @@ exports.sRequest = function (data, callback) {
 
     var self = this;
     var conf = self._config;
-        if (!data.action || typeof data.action !== "string") {
-            return link.end(new Error("Action is mandatory."));
-        }
 
-        var action = conf.actions[data.action];
-        if (typeof action !== "object") {
-            return link.end(new Error("Invalid action."));
-        }
+    data = Ul.merge(data, {
+        action: null
+    });
 
-        action = Ul.merge(action, {
-            col: null,
-            method: "find"
+    if (!data.action || typeof data.action !== "string") {
+        return callback(new Error("Action is mandatory."));
+    }
+
+    var action = conf.actions[data.action];
+    if (typeof action !== "object") {
+        return callback(new Error("Invalid action."));
+    }
+
+    action = Ul.merge(action, {
+        col: null,
+        method: "find"
+    });
+
+    if (typeof action.col !== "string") {
+        return callback(new Error("Collection should be a string."));
+    }
+
+    var collection = self.db.collection(action.col);
+
+    data = Ul.merge(data, {
+        m: action.method || "find",
+        args: []
+    });
+
+    if (data.args.constructor === Object) {
+        var obj = data.args;
+        data.args = [];
+        Object.keys(obj).forEach(function (c) {
+            c = parseInt(c);
+            if (isNaN(c)) {
+                return;
+            }
+            data.args[c] = obj[c];
         });
-
-        if (typeof action.col !== "string") {
-            return link.end(new Error("Collection should be a string."));
-        }
-
-        var collection = self.db.collection(action.col);
-
-        data = Ul.merge(data, {
-            m: action.method || "find",
-            args: []
+        data.args = data.args.filter(function (c) {
+            return c;
         });
+    }
 
-        if (data.args.constructor === Object) {
-            var obj = data.args;
-            data.args = [];
-            Object.keys(obj).forEach(function (c) {
-                c = parseInt(c);
-                if (isNaN(c)) {
-                    return;
-                }
-                data.args[c] = obj[c];
-            });
-            data.args = data.args.filter(function (c) {
-                return c;
-            });
-        }
+    if (data.args.constructor !== Array) {
+        return callback(new Error("Arguments should be an array."));
+    }
 
-        if (data.args.constructor !== Array) {
-            return link.end(new Error("Arguments should be an array."));
-        }
+    var func = collection[data.m];
+    if (typeof func !== "function") {
+        return callback(new Error("Method doesn't exist."));
+    }
 
-        var func = collection[data.m];
-        if (typeof func !== "function") {
-            return link.end(new Error("Method doesn't exist."));
-        }
-
-        if (typeof data.args.slice(-1)[0] !== "function") {
-            data.args.push(function (err, data, stats) {
-                link.end.apply(link, arguments);
-            });
-        }
-
-        func.apply(collection, data.args);
+    data.args.push(callback);
+    func.apply(collection, data.args);
 };
