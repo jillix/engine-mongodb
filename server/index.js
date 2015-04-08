@@ -16,7 +16,6 @@ exports.init = function () {
         config.uri = "mongodb://localhost:27017/" + config.db;
     }
 
-    console.log(config.uri);
     MongoClient.connect(config.uri, function(err, db) {
         if (err) {
             return console.error(err);
@@ -34,6 +33,13 @@ exports.request = function (link) {
         data = Ul.merge(data, {
             action: null
         });
+    });
+};
+
+exports.sRequest = function (data, callback) {
+
+    var self = this;
+    var conf = self._config;
         if (!data.action || typeof data.action !== "string") {
             return link.end(new Error("Action is mandatory."));
         }
@@ -83,10 +89,11 @@ exports.request = function (link) {
             return link.end(new Error("Method doesn't exist."));
         }
 
-        data.args.push(function (err, data, stats) {
-            link.end.apply(link, arguments);
-        });
+        if (typeof data.args.slice(-1)[0] !== "function") {
+            data.args.push(function (err, data, stats) {
+                link.end.apply(link, arguments);
+            });
+        }
 
         func.apply(collection, data.args);
-    });
 };
