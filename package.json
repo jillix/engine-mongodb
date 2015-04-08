@@ -29,5 +29,11 @@
   "dependencies": {
     "mongodb": "^2.0.25"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "flow": [{
+    "in": "request",
+    "out": [{
+        "call": "request"
+    }]
+  }]
 }
