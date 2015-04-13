@@ -35,6 +35,14 @@ exports.request = function (link) {
 exports.sRequest = function (data, callback) {
 
     var self = this;
+    var args = arguments;
+
+    if (!self.db) {
+        return setTimeout(function () {
+            self.sRequest.apply(self, args);
+        }, 100);
+    }
+
     var conf = self._config;
 
     data = Ul.merge(data, {
