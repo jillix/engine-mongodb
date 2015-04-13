@@ -28,7 +28,14 @@ exports.request = function (link) {
     var self = this;
     link.data(function (err, data) {
         if (err) { return link.end(err); }
-        self.sRequest(data, link.end.bind(link));
+        self.sRequest(data, function (err, res) {
+            if (typeof res.toArray === "function") {
+                return res.toArray(function (err, docs) {
+                    link.end(err, err ? null : { res: docs  });
+                });
+            }
+            return link.end(err, res);
+        });
     });
 };
 
