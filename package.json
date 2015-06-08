@@ -35,5 +35,25 @@
     "out": [{
         "call": "request"
     }]
-  }]
+  }],
+  "engine": {
+    "ex_config": {
+        "actions": {
+          "insertItem": {
+            "col": "items",
+            "method": "insert"
+          },
+          "deleteItem": {
+            "col": "items",
+            "method": "remove"
+          },
+          "getProjects": {
+            "col": "projects",
+            "method": "find"
+          }
+        },
+        "uri": "custom mongodb uri",
+        "db": "db-name"
+    }
+  }
 }

@@ -3,6 +3,12 @@ var Mongo = require("mongodb");
 var MongoClient = Mongo.MongoClient;
 var Ul = require("ul");
 
+/*!
+ * init
+ *
+ * @name init
+ * @function
+ */
 exports.init = function () {
     var self = this;
 
